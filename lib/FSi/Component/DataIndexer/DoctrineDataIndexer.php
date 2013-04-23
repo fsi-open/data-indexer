@@ -79,16 +79,12 @@ class DoctrineDataIndexer implements DataIndexerInterface
      */
     public function getData($index)
     {
-        $metadataFactory = $this->manager->getMetadataFactory();
-        $metadata = $metadataFactory->getMetadataFor($this->class);
-
-        $identifiers = $metadata->getIdentifierFieldNames();
-
+        $identifiers = $this->getIdentifierFieldNames();
         $searchCriteria = array();
         if (count($identifiers) > 1) {
             $indexParts = explode($this->getSeparator(), $index);
             if (count($indexParts) != count($identifiers)) {
-                throw new RuntimeException("Can\'t split index into parts. Maybe you should consider using different separator?");
+                throw new RuntimeException("Can't split index into parts. Maybe you should consider using different separator?");
             }
 
             reset($indexParts);
@@ -107,6 +103,45 @@ class DoctrineDataIndexer implements DataIndexerInterface
         }
 
         return $entity;
+    }
+
+    /**
+     * {@inheritdoc}
+     */
+    public function getDataSlice($indexes)
+    {
+        if (!is_array($indexes) && (!$indexes instanceof \Traversable && !$indexes instanceof \Countable) ) {
+            throw new InvalidArgumentException('Indexes are not traversable.');
+        }
+
+        $identifiers = $this->getIdentifierFieldNames();
+        $searchCriteria = array();
+
+        if (count($identifiers) > 1) {
+            foreach ($indexes as $index) {
+                $indexParts = explode($this->getSeparator(), $index);
+
+                if (count($indexParts) != count($identifiers)) {
+                    throw new RuntimeException("Can't split index into parts. Maybe you should consider using different separator?");
+                }
+
+                reset($indexParts);
+                foreach ($identifiers as $identifier) {
+                    if (!isset($searchCriteria[$identifier])) {
+                        $searchCriteria[$identifier] = array();
+                    }
+
+                    $searchCriteria[$identifier][] = current($indexParts);
+                    next($indexParts);
+                }
+            }
+        } else {
+            $searchCriteria[current($identifiers)] = (array) $indexes;
+        }
+
+        $entities = $this->manager->getRepository($this->class)->findBy($searchCriteria);
+
+        return $entities;
     }
 
     /**
@@ -133,5 +168,18 @@ class DoctrineDataIndexer implements DataIndexerInterface
     public function getSeparator()
     {
         return $this->separator;
+    }
+
+    /**
+     * Returns an array of identifier field names for self::$class.
+     *
+     * @return array
+     */
+    private function getIdentifierFieldNames()
+    {
+        $metadataFactory = $this->manager->getMetadataFactory();
+        $metadata = $metadataFactory->getMetadataFor($this->class);
+
+        return $metadata->getIdentifierFieldNames();
     }
 }

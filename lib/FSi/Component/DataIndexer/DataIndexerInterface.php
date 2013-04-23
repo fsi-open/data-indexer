@@ -24,6 +24,12 @@ interface DataIndexerInterface
     public function getData($index);
 
     /**
+     * @param $indexes
+     * @return array
+     */
+    public function getDataSlice($indexes);
+
+    /**
      * @return string
      */
     public function getSeparator();
