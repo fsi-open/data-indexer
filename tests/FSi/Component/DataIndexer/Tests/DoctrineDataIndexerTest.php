@@ -96,6 +96,32 @@ class DoctrineDataIndexerTest extends \PHPUnit_Framework_TestCase
         $dataIndexer->getData("foo||bar");
     }
 
+    public function testGetDataSliceWithSimpleKey()
+    {
+        $class = "FSi\\Component\\DataIndexer\\Tests\\Fixtures\\News";
+        $dataIndexer = new DoctrineDataIndexer($this->getManagerRegistry(), $class);
+
+        $news = $dataIndexer->getDataSlice(array("foo", "bar"));
+
+        $this->assertSame(array(
+            $news[0]->getId(),
+            $news[1]->getId()
+        ), array("foo", "bar"));
+    }
+
+    public function testGetDataSliceWithCompositeKey()
+    {
+        $class = "FSi\\Component\\DataIndexer\\Tests\\Fixtures\\Post";
+        $dataIndexer = new DoctrineDataIndexer($this->getManagerRegistry(), $class);
+
+        $news = $dataIndexer->getDataSlice(array("foo|foo1", "bar|bar1"));
+
+        $this->assertSame(array(
+            $news[0]->getIdFirstPart() . '|' . $news[0]->getIdSecondPart(),
+            $news[1]->getIdFirstPart() . '|' . $news[1]->getIdSecondPart(),
+        ), array("foo|foo1", "bar|bar1"));
+    }
+
     protected function getManagerRegistry()
     {
         $self = $this;
@@ -159,6 +185,24 @@ class DoctrineDataIndexerTest extends \PHPUnit_Framework_TestCase
                                 }
                                 if ($criteria == array('id_first_part' => "foo", "id_second_part" => "bar")) {
                                     return new Post("foo", "bar");
+                                }
+                            }));
+
+                        $repository->expects($self->any())
+                            ->method('findBy')
+                            ->will($self->returnCallback(function($criteria) use ($self) {
+                                if ($criteria == array('id' => array("foo", "bar"))) {
+                                    return array(
+                                        new News("foo"),
+                                        new News("bar")
+                                    );
+                                }
+
+                                if ($criteria == array('id_first_part' => array('foo', 'bar'), 'id_second_part' => array('foo1', 'bar1'))) {
+                                    return array(
+                                        new Post("foo", "foo1"),
+                                        new Post("bar", "bar1")
+                                    );
                                 }
                             }));
 
