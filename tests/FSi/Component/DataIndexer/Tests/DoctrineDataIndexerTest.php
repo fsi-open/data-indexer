@@ -13,6 +13,8 @@ use FSi\Component\DataIndexer\DoctrineDataIndexer;
 use FSi\Component\DataIndexer\Tests\Fixtures\Category;
 use FSi\Component\DataIndexer\Tests\Fixtures\News;
 use FSi\Component\DataIndexer\Tests\Fixtures\Post;
+use FSi\Component\DataIndexer\Tests\Fixtures\Car;
+use FSi\Component\DataIndexer\Tests\Fixtures\Bike;
 
 class DoctrineDataIndexerTest extends \PHPUnit_Framework_TestCase
 {
@@ -122,6 +124,19 @@ class DoctrineDataIndexerTest extends \PHPUnit_Framework_TestCase
         ), array("foo|foo1", "bar|bar1"));
     }
 
+    public function testGetIndexWithSubclass()
+    {
+        $class = "FSi\\Component\\DataIndexer\\Tests\\Fixtures\\Vehicle";
+        $dataIndexer = new DoctrineDataIndexer($this->getManagerRegistry(), $class);
+
+        // Creating subclasses of News
+        $car = new Car("foo");
+        $bike = new Bike("bar");
+
+        $this->assertSame($dataIndexer->getIndex($car), "foo");
+        $this->assertSame($dataIndexer->getIndex($bike), "bar");
+    }
+
     protected function getManagerRegistry()
     {
         $self = $this;
@@ -141,7 +156,8 @@ class DoctrineDataIndexerTest extends \PHPUnit_Framework_TestCase
                             ->method('getMetadataFor')
                             ->will($self->returnCallback(function($class) use ($self) {
                                 switch ($class) {
-                                    case "FSi\\Component\\DataIndexer\\Tests\\Fixtures\\News" :
+                                    case "FSi\\Component\\DataIndexer\\Tests\\Fixtures\\News":
+                                    case "FSi\\Component\\DataIndexer\\Tests\\Fixtures\\Vehicle":
                                         $metadata = $self->getMock('Doctrine\\Common\\Persistence\\Mapping\\ClassMetadata');
                                         $metadata->expects($self->any())
                                             ->method('getIdentifierFieldNames')
