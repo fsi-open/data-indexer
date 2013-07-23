@@ -9,10 +9,23 @@
 
 namespace FSi\Component\DataIndexer\Tests\Fixtures;
 
+use Doctrine\ORM\Mapping as ORM;
+
+/**
+ * @ORM\Entity()
+ */
 class Post
 {
+    /**
+     * @ORM\Column(type="string")
+     * @ORM\Id
+     */
     protected $id_first_part;
 
+    /**
+     * @ORM\Column(type="string")
+     * @ORM\Id
+     */
     protected $id_second_part;
 
     public function __construct($id_first_part, $id_second_part)

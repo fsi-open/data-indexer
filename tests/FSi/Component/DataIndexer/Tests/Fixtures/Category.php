@@ -9,8 +9,18 @@
 
 namespace FSi\Component\DataIndexer\Tests\Fixtures;
 
+use Doctrine\ORM\Mapping as ORM;
+
+/**
+ * @ORM\Entity()
+ */
 class Category
 {
+    /**
+     * @ORM\Column(type="integer")
+     * @ORM\Id
+     * @ORM\GeneratedValue(strategy="AUTO")
+     */
     protected $id;
 
     public function __construct($id)

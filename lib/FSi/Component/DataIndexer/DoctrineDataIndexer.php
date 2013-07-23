@@ -39,14 +39,24 @@ class DoctrineDataIndexer implements DataIndexerInterface
     public function __construct(ManagerRegistry $registry, $class)
     {
         $this->manager = $registry->getManagerForClass($class);
-        $this->class = $class;
 
         if (!isset($this->manager)) {
             throw new InvalidArgumentException(sprintf(
                 'ManagerRegistry doesn\'t have manager for class "%s".',
-                $this->class
+                $class
             ));
         }
+
+        $classMetadata = $this->manager->getClassMetadata($class);
+        if ($classMetadata->isMappedSuperclass) {
+            throw new RuntimeException('DoctrineDataIndexer can\'t be created for mapped super class.');
+        }
+
+        if (!empty($classMetadata->parentClasses)) {
+            $parents = $classMetadata->parentClasses;
+            $class = array_pop($parents);
+        }
+        $this->class = $class;
     }
 
     /**
@@ -59,11 +69,8 @@ class DoctrineDataIndexer implements DataIndexerInterface
         $metadataFactory = $this->manager->getMetadataFactory();
         $metadata = $metadataFactory->getMetadataFor($this->class);
 
+        // We can assume, that there are aways some identifiers, since otherwise Doctrine would throw an exception.
         $identifiers = $metadata->getIdentifierFieldNames();
-
-        if (!count($identifiers)) {
-            throw new RuntimeException('DoctrineDataIndexer can\'t resolve index from object.');
-        }
 
         $accessor = PropertyAccess::getPropertyAccessor();
         $indexes = array();
@@ -168,6 +175,16 @@ class DoctrineDataIndexer implements DataIndexerInterface
     public function getSeparator()
     {
         return $this->separator;
+    }
+
+    /**
+     * Get class idexer is constructed for.
+     *
+     * @return string
+     */
+    public function getClass()
+    {
+        return $this->class;
     }
 
     /**

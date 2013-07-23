@@ -9,8 +9,17 @@
 
 namespace FSi\Component\DataIndexer\Tests\Fixtures;
 
+use Doctrine\ORM\Mapping as ORM;
+
+/**
+ * @ORM\Entity()
+ */
 class News
 {
+    /**
+     * @ORM\Column(type="string")
+     * @ORM\Id
+     */
     protected $id;
 
     public function __construct($id)
