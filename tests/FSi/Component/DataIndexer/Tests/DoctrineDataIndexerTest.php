@@ -332,9 +332,6 @@ class DoctrineDataIndexerTest extends \PHPUnit_Framework_TestCase
             ->will($this->returnValue('Doctrine\\ORM\\EntityRepository'))
         ;
 
-        $this->_logger = new \Doctrine\DBAL\Logging\DebugStack();
-        $this->_logger->enabled = false;
-
         return $config;
     }
 }

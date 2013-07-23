@@ -52,11 +52,7 @@ class DoctrineDataIndexer implements DataIndexerInterface
             throw new RuntimeException('DoctrineDataIndexer can\'t be created for mapped super class.');
         }
 
-        if (!empty($classMetadata->parentClasses)) {
-            $parents = $classMetadata->parentClasses;
-            $class = array_pop($parents);
-        }
-        $this->class = $class;
+        $this->class = $classMetadata->rootEntityName;
     }
 
     /**
