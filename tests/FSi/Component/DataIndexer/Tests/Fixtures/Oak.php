@@ -12,8 +12,8 @@ namespace FSi\Component\DataIndexer\Tests\Fixtures;
 use Doctrine\ORM\Mapping as ORM;
 
 /**
- * @ORM\Entity()
+ * @ORM\Entity
  */
-class Bike extends Vehicle
+class Oak extends DeciduousTree
 {
 }

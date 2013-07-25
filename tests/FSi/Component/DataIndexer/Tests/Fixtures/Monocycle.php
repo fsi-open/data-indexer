@@ -14,6 +14,6 @@ use Doctrine\ORM\Mapping as ORM;
 /**
  * @ORM\Entity()
  */
-class Bike extends Vehicle
+class Monocycle extends Bike
 {
 }
