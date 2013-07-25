@@ -12,12 +12,9 @@ namespace FSi\Component\DataIndexer\Tests\Fixtures;
 use Doctrine\ORM\Mapping as ORM;
 
 /**
- * @ORM\Entity
- * @ORM\InheritanceType("SINGLE_TABLE")
- * @ORM\DiscriminatorColumn(name="type", type="string")
- * @ORM\DiscriminatorMap({"car" = "Car", "bike" = "Bike", "monocycle" = "Monocycle"})
+ * @ORM\MappedSuperClass()
  */
-abstract class Vehicle
+abstract class Plant
 {
     /**
      * @ORM\Column(type="integer")
