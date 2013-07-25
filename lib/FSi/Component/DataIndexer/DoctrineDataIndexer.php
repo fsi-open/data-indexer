@@ -65,7 +65,7 @@ class DoctrineDataIndexer implements DataIndexerInterface
         $metadataFactory = $this->manager->getMetadataFactory();
         $metadata = $metadataFactory->getMetadataFor($this->class);
 
-        // We can assume, that there are aways some identifiers, since otherwise Doctrine would throw an exception.
+        // We can assume, that there are always some identifiers, since otherwise Doctrine would throw an exception.
         $identifiers = $metadata->getIdentifierFieldNames();
 
         $accessor = PropertyAccess::getPropertyAccessor();
