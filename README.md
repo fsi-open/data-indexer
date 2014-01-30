@@ -28,6 +28,8 @@ $index = $dataIndexer->getIndex($news);
 // value in $index "this_is_id"
 
 $entity = $dataIndexer->getData($index);
-// entity is News object with id "this_is_id"
+// $entity value is a News object with id "this_is_id"
 
 ```
+
+*DoctrineDataIndexer* handle single and composite keys 
