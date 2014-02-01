@@ -9,6 +9,7 @@
 
 namespace FSi\Component\DataIndexer;
 
+use Doctrine\Common\Persistence\ObjectManager;
 use Symfony\Component\PropertyAccess\PropertyAccess;
 use FSi\Component\DataIndexer\Exception\InvalidArgumentException;
 use FSi\Component\DataIndexer\Exception\RuntimeException;
@@ -34,7 +35,8 @@ class DoctrineDataIndexer implements DataIndexerInterface
     /**
      * @param ManagerRegistry $registry
      * @param $class
-     * @throws InvalidArgumentException
+     * @throws Exception\InvalidArgumentException
+     * @throws Exception\RuntimeException
      */
     public function __construct(ManagerRegistry $registry, $class)
     {
@@ -68,7 +70,7 @@ class DoctrineDataIndexer implements DataIndexerInterface
         // We can assume, that there are always some identifiers, since otherwise Doctrine would throw an exception.
         $identifiers = $metadata->getIdentifierFieldNames();
 
-        $accessor = PropertyAccess::getPropertyAccessor();
+        $accessor = PropertyAccess::createPropertyAccessor();
         $indexes = array();
         foreach ($identifiers as $identifier) {
             $indexes[] = $accessor->getValue($data, $identifier);
