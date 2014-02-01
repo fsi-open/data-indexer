@@ -24,7 +24,6 @@ if (!file_exists(TESTS_TEMP_DIR . '/cache')) {
 }
 
 $loader = require_once __DIR__.'/../vendor/autoload.php';
-$loader->add('FSi\\Component\\DataIndexer\\Tests', __DIR__);
 
 \Doctrine\Common\Annotations\AnnotationRegistry::registerFile(
     VENDOR_PATH.'/doctrine/orm/lib/Doctrine/ORM/Mapping/Driver/DoctrineAnnotations.php'

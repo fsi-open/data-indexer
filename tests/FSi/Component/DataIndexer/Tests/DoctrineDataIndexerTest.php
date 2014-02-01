@@ -1,7 +1,7 @@
 <?php
 
 /**
- * (c) Fabryka Stron Internetowych sp. z o.o <info@fsi.pl>
+ * (c) FSi sp. z o.o <info@fsi.pl>
  *
  * For the full copyright and license information, please view the LICENSE
  * file that was distributed with this source code.
@@ -12,9 +12,9 @@ namespace FSi\Component\DataIndexer\Tests;
 use Doctrine\Common\EventManager;
 use Doctrine\ORM\Mapping\Driver\AnnotationDriver;
 use Doctrine\ORM\EntityManager;
+use Doctrine\ORM\Repository\DefaultRepositoryFactory;
 use Doctrine\ORM\Tools\SchemaTool;
 use FSi\Component\DataIndexer\DoctrineDataIndexer;
-use FSi\Component\DataIndexer\Tests\Fixtures\Category;
 use FSi\Component\DataIndexer\Tests\Fixtures\News;
 use FSi\Component\DataIndexer\Tests\Fixtures\Post;
 use FSi\Component\DataIndexer\Tests\Fixtures\Car;
@@ -43,7 +43,6 @@ class DoctrineDataIndexerTest extends \PHPUnit_Framework_TestCase
         $config = $this->getMockAnnotatedConfig();
         $conn = \Doctrine\DBAL\DriverManager::getConnection($connectionParams, $config, $evm);
         $em = EntityManager::create($conn, $config, $evm);
-
         $schema = array_map(function($class) use ($em) {
             return $em->getClassMetadata($class);
         }, array(
@@ -70,7 +69,7 @@ class DoctrineDataIndexerTest extends \PHPUnit_Framework_TestCase
 
         $class = "\\FSi\\Component\\DataIndexer\\DataIndexer";
 
-        $dataIndexer = new DoctrineDataIndexer($managerRegistry, $class);
+        new DoctrineDataIndexer($managerRegistry, $class);
     }
 
     public function testGetIndexWithSimpleKey()
@@ -235,7 +234,7 @@ class DoctrineDataIndexerTest extends \PHPUnit_Framework_TestCase
     public function testCreateWithMappedSuperClass()
     {
         $class = self::FIXTURES . 'Plant';
-        $dataIndexer = new DoctrineDataIndexer($this->getManagerRegistry(), $class);
+        new DoctrineDataIndexer($this->getManagerRegistry(), $class);
     }
 
     /**
@@ -268,8 +267,7 @@ class DoctrineDataIndexerTest extends \PHPUnit_Framework_TestCase
         $managerRegistry = $this->getMock("Doctrine\\Common\\Persistence\\ManagerRegistry");
         $managerRegistry->expects($this->any())
             ->method('getManagerForClass')
-            ->will($this->returnValue($this->em))
-        ;
+            ->will($this->returnValue($this->em));
 
         return $managerRegistry;
     }
@@ -277,60 +275,41 @@ class DoctrineDataIndexerTest extends \PHPUnit_Framework_TestCase
     protected function getMockAnnotatedConfig()
     {
         $config = $this->getMock('Doctrine\ORM\Configuration');
-        $config
-            ->expects($this->once())
+        $config->expects($this->once())
             ->method('getProxyDir')
-            ->will($this->returnValue(TESTS_TEMP_DIR))
-        ;
+            ->will($this->returnValue(TESTS_TEMP_DIR));
 
-        $config
-            ->expects($this->once())
+        $config->expects($this->once())
             ->method('getProxyNamespace')
-            ->will($this->returnValue('Proxy'))
-        ;
+            ->will($this->returnValue('Proxy'));
 
-        $config
-            ->expects($this->once())
+        $config->expects($this->once())
             ->method('getAutoGenerateProxyClasses')
-            ->will($this->returnValue(true))
-        ;
+            ->will($this->returnValue(true));
 
-        $config
-            ->expects($this->once())
+        $config->expects($this->once())
             ->method('getClassMetadataFactoryName')
-            ->will($this->returnValue('Doctrine\\ORM\\Mapping\\ClassMetadataFactory'))
-        ;
+            ->will($this->returnValue('Doctrine\\ORM\\Mapping\\ClassMetadataFactory'));
 
-        $config
-            ->expects($this->any())
+        $config->expects($this->any())
             ->method('getQuoteStrategy')
-            ->will($this->returnValue(new \Doctrine\ORM\Mapping\DefaultQuoteStrategy()))
-        ;
+            ->will($this->returnValue(new \Doctrine\ORM\Mapping\DefaultQuoteStrategy()));
 
-        $config
-            ->expects($this->any())
-            ->method('getCustomHydrationMode')
-            ->will($this->returnCallback(function ($hydrationMode) {
-                if ($hydrationMode == \FSi\DoctrineExtensions\ORM\Query::HYDRATE_OBJECT) {
-                    return 'FSi\DoctrineExtensions\ORM\Hydration\ObjectHydrator';
-                }
-            }))
-        ;
 
         $reader = new \Doctrine\Common\Annotations\AnnotationReader();
         $reader = new \Doctrine\Common\Annotations\CachedReader($reader, new \Doctrine\Common\Cache\ArrayCache());
 
-        $config
-            ->expects($this->any())
+        $config->expects($this->any())
             ->method('getMetadataDriverImpl')
-            ->will($this->returnValue(new AnnotationDriver($reader, __DIR__)))
-        ;
+            ->will($this->returnValue(new AnnotationDriver($reader, __DIR__)));
 
-        $config
-            ->expects($this->any())
+        $config->expects($this->any())
             ->method('getDefaultRepositoryClassName')
-            ->will($this->returnValue('Doctrine\\ORM\\EntityRepository'))
-        ;
+            ->will($this->returnValue('Doctrine\\ORM\\EntityRepository'));
+
+        $config->expects($this->any())
+            ->method('getRepositoryFactory')
+            ->will($this->returnValue(new DefaultRepositoryFactory()));
 
         return $config;
     }
