@@ -42,7 +42,7 @@ class DoctrineDataIndexer implements DataIndexerInterface
     public function __construct(ManagerRegistry $registry, $class)
     {
         $this->manager = $this->tryToGetObjectManager($registry, $class);
-        $this->class = $this->tryToGetTopClass($class);
+        $this->class = $this->tryToGetRootClass($class);
     }
 
     /**
@@ -147,7 +147,7 @@ class DoctrineDataIndexer implements DataIndexerInterface
      * @return string
      * @throws Exception\RuntimeException
      */
-    private function tryToGetTopClass($class)
+    private function tryToGetRootClass($class)
     {
         $classMetadata = $this->manager->getClassMetadata($class);
 
