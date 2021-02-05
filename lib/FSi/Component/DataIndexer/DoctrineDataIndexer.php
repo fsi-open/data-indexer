@@ -9,12 +9,12 @@
 
 namespace FSi\Component\DataIndexer;
 
-use Doctrine\Common\Persistence\ObjectManager;
 use Doctrine\ORM\Mapping\ClassMetadataInfo;
+use Doctrine\Persistence\ManagerRegistry;
+use Doctrine\Persistence\ObjectManager;
 use Symfony\Component\PropertyAccess\PropertyAccess;
 use FSi\Component\DataIndexer\Exception\InvalidArgumentException;
 use FSi\Component\DataIndexer\Exception\RuntimeException;
-use Doctrine\Common\Persistence\ManagerRegistry;
 
 class DoctrineDataIndexer implements DataIndexerInterface
 {
@@ -35,7 +35,7 @@ class DoctrineDataIndexer implements DataIndexerInterface
 
     /**
      * @param ManagerRegistry $registry
-     * @param $class
+     * @param string $class
      * @throws Exception\InvalidArgumentException
      * @throws Exception\RuntimeException
      */

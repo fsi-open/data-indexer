@@ -14,13 +14,18 @@ use Doctrine\ORM\Mapping\Driver\AnnotationDriver;
 use Doctrine\ORM\EntityManager;
 use Doctrine\ORM\Repository\DefaultRepositoryFactory;
 use Doctrine\ORM\Tools\SchemaTool;
+use Doctrine\Persistence\ManagerRegistry;
 use FSi\Component\DataIndexer\DoctrineDataIndexer;
+use FSi\Component\DataIndexer\Exception\InvalidArgumentException;
+use FSi\Component\DataIndexer\Exception\RuntimeException;
 use FSi\Component\DataIndexer\Tests\Fixtures\News;
 use FSi\Component\DataIndexer\Tests\Fixtures\Post;
 use FSi\Component\DataIndexer\Tests\Fixtures\Car;
 use FSi\Component\DataIndexer\Tests\Fixtures\Bike;
+use PHPUnit\Framework\TestCase;
+use Doctrine\ORM\Configuration;
 
-class DoctrineDataIndexerTest extends \PHPUnit_Framework_TestCase
+class DoctrineDataIndexerTest extends TestCase
 {
     /**
      * Namespace for fixtures.
@@ -32,7 +37,7 @@ class DoctrineDataIndexerTest extends \PHPUnit_Framework_TestCase
      */
     protected $em;
 
-    protected function setUp()
+    protected function setUp(): void
     {
         $connectionParams = array(
             'driver'    => 'pdo_sqlite',
@@ -57,22 +62,20 @@ class DoctrineDataIndexerTest extends \PHPUnit_Framework_TestCase
         $this->em = $em;
     }
 
-    /**
-     * @expectedException \FSi\Component\DataIndexer\Exception\InvalidArgumentException
-     */
-    public function testDataIndexerWithInvalidClass()
+    public function testDataIndexerWithInvalidClass(): void
     {
-        $managerRegistry = $this->getMock("Doctrine\\Common\\Persistence\\ManagerRegistry");
+        $managerRegistry = $this->createMock(ManagerRegistry::class);
         $managerRegistry->expects($this->any())
             ->method('getManagerForClass')
             ->will($this->returnValue(null));
 
         $class = "\\FSi\\Component\\DataIndexer\\DataIndexer";
 
+        $this->expectException(InvalidArgumentException::class);
         new DoctrineDataIndexer($managerRegistry, $class);
     }
 
-    public function testGetIndexWithSimpleKey()
+    public function testGetIndexWithSimpleKey(): void
     {
         $class = "FSi\\Component\\DataIndexer\\Tests\\Fixtures\\News";
         $dataIndexer = new DoctrineDataIndexer($this->getManagerRegistry(), $class);
@@ -82,7 +85,7 @@ class DoctrineDataIndexerTest extends \PHPUnit_Framework_TestCase
         $this->assertSame($dataIndexer->getIndex($news), "foo");
     }
 
-    public function testGetIndexWithCompositeKey()
+    public function testGetIndexWithCompositeKey(): void
     {
         $class = "FSi\\Component\\DataIndexer\\Tests\\Fixtures\\Post";
         $dataIndexer = new DoctrineDataIndexer($this->getManagerRegistry(), $class);
@@ -92,7 +95,7 @@ class DoctrineDataIndexerTest extends \PHPUnit_Framework_TestCase
         $this->assertSame($dataIndexer->getIndex($news), "foo" . $dataIndexer->getSeparator() . "bar");
     }
 
-    public function testGetDataWithSimpleKey()
+    public function testGetDataWithSimpleKey(): void
     {
         $class = "FSi\\Component\\DataIndexer\\Tests\\Fixtures\\News";
         $dataIndexer = new DoctrineDataIndexer($this->getManagerRegistry(), $class);
@@ -107,7 +110,7 @@ class DoctrineDataIndexerTest extends \PHPUnit_Framework_TestCase
         $this->assertSame($news->getId(), "foo");
     }
 
-    public function testGetDataWithCompositeKey()
+    public function testGetDataWithCompositeKey(): void
     {
         $class = "FSi\\Component\\DataIndexer\\Tests\\Fixtures\\Post";
         $dataIndexer = new DoctrineDataIndexer($this->getManagerRegistry(), $class);
@@ -123,18 +126,16 @@ class DoctrineDataIndexerTest extends \PHPUnit_Framework_TestCase
         $this->assertSame($post->getIdSecondPart(), "bar");
     }
 
-    /**
-     * @expectedException \FSi\Component\DataIndexer\Exception\RuntimeException
-     */
-    public function testGetDataWithCompositeKeyAndSeparatorInID()
+    public function testGetDataWithCompositeKeyAndSeparatorInID(): void
     {
         $class = "FSi\\Component\\DataIndexer\\Tests\\Fixtures\\Post";
         $dataIndexer = new DoctrineDataIndexer($this->getManagerRegistry(), $class);
 
+        $this->expectException(RuntimeException::class);
         $dataIndexer->getData("foo||bar");
     }
 
-    public function testGetDataSliceWithSimpleKey()
+    public function testGetDataSliceWithSimpleKey(): void
     {
         $class = "FSi\\Component\\DataIndexer\\Tests\\Fixtures\\News";
         $dataIndexer = new DoctrineDataIndexer($this->getManagerRegistry(), $class);
@@ -154,7 +155,7 @@ class DoctrineDataIndexerTest extends \PHPUnit_Framework_TestCase
         ), array("bar", "foo"));
     }
 
-    public function testGetDataSliceWithCompositeKey()
+    public function testGetDataSliceWithCompositeKey(): void
     {
         $class = "FSi\\Component\\DataIndexer\\Tests\\Fixtures\\Post";
         $dataIndexer = new DoctrineDataIndexer($this->getManagerRegistry(), $class);
@@ -174,7 +175,7 @@ class DoctrineDataIndexerTest extends \PHPUnit_Framework_TestCase
         ), array("bar|bar1", "foo|foo1"));
     }
 
-    public function testGetIndexWithSubclass()
+    public function testGetIndexWithSubclass(): void
     {
         $class = self::FIXTURES . 'Vehicle';
         $dataIndexer = new DoctrineDataIndexer($this->getManagerRegistry(), $class);
@@ -191,7 +192,7 @@ class DoctrineDataIndexerTest extends \PHPUnit_Framework_TestCase
     /**
      * For simple entity indexer must be set that class.
      */
-    public function testCreateWithSimpleEntity()
+    public function testCreateWithSimpleEntity(): void
     {
         $class = self::FIXTURES . 'News';
         $dataIndexer = new DoctrineDataIndexer($this->getManagerRegistry(), $class);
@@ -201,7 +202,7 @@ class DoctrineDataIndexerTest extends \PHPUnit_Framework_TestCase
     /**
      * For entity that extends other entity, indexer must set its parent.
      */
-    public function testCreateWithSubclass()
+    public function testCreateWithSubclass(): void
     {
         $class = self::FIXTURES . 'Car';
         $dataIndexer = new DoctrineDataIndexer($this->getManagerRegistry(), $class);
@@ -211,7 +212,7 @@ class DoctrineDataIndexerTest extends \PHPUnit_Framework_TestCase
     /**
      * For few levels of inheritance indexer must set its highest parent.
      */
-    public function testCreateWithSubclasses()
+    public function testCreateWithSubclasses(): void
     {
         $class = self::FIXTURES . 'Monocycle';
         $dataIndexer = new DoctrineDataIndexer($this->getManagerRegistry(), $class);
@@ -221,18 +222,16 @@ class DoctrineDataIndexerTest extends \PHPUnit_Framework_TestCase
     /**
      * For entity that is on top of inheritance tree indexer must set given class.
      */
-    public function testCreateWithEntityThatOtherInheritsFrom()
+    public function testCreateWithEntityThatOtherInheritsFrom(): void
     {
         $class = self::FIXTURES . 'Vehicle';
         $dataIndexer = new DoctrineDataIndexer($this->getManagerRegistry(), $class);
         $this->assertSame($class, $dataIndexer->getClass());
     }
 
-    /**
-     * @expectedException \FSi\Component\DataIndexer\Exception\RuntimeException
-     */
-    public function testCreateWithMappedSuperClass()
+    public function testCreateWithMappedSuperClass(): void
     {
+        $this->expectException(RuntimeException::class);
         $class = self::FIXTURES . 'Plant';
         new DoctrineDataIndexer($this->getManagerRegistry(), $class);
     }
@@ -241,21 +240,21 @@ class DoctrineDataIndexerTest extends \PHPUnit_Framework_TestCase
      * For entity that inherits from mapped super class indexer must be set to
      * the same class that was created.
      */
-    public function testCreateWithEntityThatInheritsFromMappedSuperClass()
+    public function testCreateWithEntityThatInheritsFromMappedSuperClass(): void
     {
         $class = self::FIXTURES . 'Tree';
         $dataIndexer = new DoctrineDataIndexer($this->getManagerRegistry(), $class);
         $this->assertSame($class, $dataIndexer->getClass());
     }
 
-    public function testSecondLevelOfInheritanceFromMappedSuperClass()
+    public function testSecondLevelOfInheritanceFromMappedSuperClass(): void
     {
         $class = self::FIXTURES . 'DeciduousTree';
         $dataIndexer = new DoctrineDataIndexer($this->getManagerRegistry(), $class);
         $this->assertSame(self::FIXTURES . 'Tree', $dataIndexer->getClass());
     }
 
-    public function testThirdLevelOfInheritanceFromMappedSuperClass()
+    public function testThirdLevelOfInheritanceFromMappedSuperClass(): void
     {
         $class = self::FIXTURES . 'Oak';
         $dataIndexer = new DoctrineDataIndexer($this->getManagerRegistry(), $class);
@@ -264,7 +263,7 @@ class DoctrineDataIndexerTest extends \PHPUnit_Framework_TestCase
 
     protected function getManagerRegistry()
     {
-        $managerRegistry = $this->getMock("Doctrine\\Common\\Persistence\\ManagerRegistry");
+        $managerRegistry = $this->createMock(ManagerRegistry::class);
         $managerRegistry->expects($this->any())
             ->method('getManagerForClass')
             ->will($this->returnValue($this->em));
@@ -274,7 +273,7 @@ class DoctrineDataIndexerTest extends \PHPUnit_Framework_TestCase
 
     protected function getMockAnnotatedConfig()
     {
-        $config = $this->getMock('Doctrine\ORM\Configuration');
+        $config = $this->createMock(Configuration::class);
         $config->expects($this->once())
             ->method('getProxyDir')
             ->will($this->returnValue(TESTS_TEMP_DIR));
