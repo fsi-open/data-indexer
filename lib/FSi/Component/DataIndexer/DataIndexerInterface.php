@@ -7,6 +7,8 @@
  * file that was distributed with this source code.
  */
 
+declare(strict_types=1);
+
 namespace FSi\Component\DataIndexer;
 
 interface DataIndexerInterface
@@ -15,24 +17,17 @@ interface DataIndexerInterface
      * @param mixed $data
      * @return mixed
      */
-    public function getIndex($data);
+    public function getIndex($data): string;
 
     /**
      * @param string $index
      * @return mixed
      */
-    public function getData($index);
+    public function getData(string $index);
 
-    /**
-     * @param $indexes
-     * @return array
-     */
-    public function getDataSlice($indexes);
+    public function getDataSlice(array $indexes): array;
 
-    /**
-     * @return string
-     */
-    public function getSeparator();
+    public function getSeparator(): string;
 
     /**
      * Check if data can be indexed by DataIndexer.
@@ -40,5 +35,5 @@ interface DataIndexerInterface
      * @param mixed $data
      * @return void
      */
-    public function validateData($data);
+    public function validateData($data): void;
 }
