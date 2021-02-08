@@ -7,14 +7,17 @@
  * file that was distributed with this source code.
  */
 
+declare(strict_types=1);
+
 namespace FSi\Component\DataIndexer;
 
-use Doctrine\Common\Persistence\ObjectManager;
 use Doctrine\ORM\Mapping\ClassMetadataInfo;
+use Doctrine\Persistence\ManagerRegistry;
+use Doctrine\Persistence\ObjectManager;
+use Doctrine\Persistence\ObjectRepository;
 use Symfony\Component\PropertyAccess\PropertyAccess;
 use FSi\Component\DataIndexer\Exception\InvalidArgumentException;
 use FSi\Component\DataIndexer\Exception\RuntimeException;
-use Doctrine\Common\Persistence\ManagerRegistry;
 
 class DoctrineDataIndexer implements DataIndexerInterface
 {
@@ -35,55 +38,40 @@ class DoctrineDataIndexer implements DataIndexerInterface
 
     /**
      * @param ManagerRegistry $registry
-     * @param $class
+     * @param string $class
      * @throws Exception\InvalidArgumentException
      * @throws Exception\RuntimeException
      */
-    public function __construct(ManagerRegistry $registry, $class)
+    public function __construct(ManagerRegistry $registry, string $class)
     {
         $this->manager = $this->tryToGetObjectManager($registry, $class);
         $this->class = $this->tryToGetRootClass($class);
     }
 
-    /**
-     * {@inheritdoc}
-     */
-    public function getIndex($data)
+    public function getIndex($data): string
     {
         $this->validateData($data);
 
         return $this->joinIndexParts($this->getIndexParts($data));
     }
 
-    /**
-     * {@inheritdoc}
-     */
-    public function getData($index)
+    public function getData(string $index)
     {
         return $this->tryToFindEntity($this->buildSearchCriteria($index));
     }
 
-    /**
-     * {@inheritdoc}
-     */
-    public function getDataSlice($indexes)
+    public function getDataSlice(array $indexes): array
     {
-        $this->validateIndexes($indexes);
-
-        return $this->getRepository()
-            ->findBy($this->buildMultipleSearchCriteria($indexes));
+        return $this->getRepository()->findBy($this->buildMultipleSearchCriteria($indexes));
     }
 
-    /**
-     * {@inheritdoc}
-     */
-    public function validateData($data)
+    public function validateData($data): void
     {
-        if (!is_object($data)) {
+        if (false === is_object($data)) {
             throw new InvalidArgumentException("DoctrineDataIndexer can index only objects.");
         }
 
-        if (!is_a($data, $this->class)) {
+        if (false === $data instanceof $this->class) {
             throw new InvalidArgumentException(sprintf(
                 'DoctrineDataIndexer expects data as instance of "%s" instead of "%s".',
                 $this->class,
@@ -92,20 +80,12 @@ class DoctrineDataIndexer implements DataIndexerInterface
         }
     }
 
-    /**
-     * {@inheritdoc}
-     */
-    public function getSeparator()
+    public function getSeparator(): string
     {
         return $this->separator;
     }
 
-    /**
-     * Get class idexer is constructed for.
-     *
-     * @return string
-     */
-    public function getClass()
+    public function getClass(): string
     {
         return $this->class;
     }
@@ -115,7 +95,7 @@ class DoctrineDataIndexer implements DataIndexerInterface
      *
      * @return array
      */
-    private function getIdentifierFieldNames()
+    private function getIdentifierFieldNames(): array
     {
         return $this->manager
             ->getClassMetadata($this->class)
@@ -124,15 +104,15 @@ class DoctrineDataIndexer implements DataIndexerInterface
 
     /**
      * @param ManagerRegistry $registry
-     * @param $class
+     * @param string $class
      * @return ObjectManager
      * @throws Exception\InvalidArgumentException
      */
-    private function tryToGetObjectManager(ManagerRegistry $registry, $class)
+    private function tryToGetObjectManager(ManagerRegistry $registry, string $class): ObjectManager
     {
         $manager = $registry->getManagerForClass($class);
 
-        if (!isset($manager)) {
+        if (null === $manager) {
             throw new InvalidArgumentException(sprintf(
                 'ManagerRegistry doesn\'t have manager for class "%s".',
                 $class
@@ -142,20 +122,15 @@ class DoctrineDataIndexer implements DataIndexerInterface
         return $manager;
     }
 
-    /**
-     * @param $class
-     * @return string
-     * @throws Exception\RuntimeException
-     */
-    private function tryToGetRootClass($class)
+    private function tryToGetRootClass(string $class): string
     {
         $classMetadata = $this->manager->getClassMetadata($class);
 
-        if (!$classMetadata instanceof ClassMetadataInfo) {
+        if (false === $classMetadata instanceof ClassMetadataInfo) {
             throw new RuntimeException("Only Doctrine ORM is supported at the moment");
         }
 
-        if ($classMetadata->isMappedSuperclass) {
+        if (true === $classMetadata->isMappedSuperclass) {
             throw new RuntimeException('DoctrineDataIndexer can\'t be created for mapped super class.');
         }
 
@@ -163,59 +138,45 @@ class DoctrineDataIndexer implements DataIndexerInterface
     }
 
     /**
-     * @param $object
+     * @param mixed $object
      * @return array
      */
-    private function getIndexParts($object)
+    private function getIndexParts($object): array
     {
         $identifiers = $this->getIdentifierFieldNames();
 
         $accessor = PropertyAccess::createPropertyAccessor();
-        $indexes = array_map(
-            function ($identifier) use ($object, $accessor) {
+        return array_map(
+            static function ($identifier) use ($object, $accessor) {
                 return $accessor->getValue($object, $identifier);
             },
             $identifiers
         );
-
-        return $indexes;
     }
 
-    /**
-     * @param $indexes
-     * @return string
-     */
-    private function joinIndexParts($indexes)
+    private function joinIndexParts(array $indexes): string
     {
         return implode($this->separator, $indexes);
     }
 
-    /**
-     * @param $index
-     * @param $identifiersCount
-     * @return array
-     * @throws Exception\RuntimeException
-     */
-    private function splitIndex($index, $identifiersCount)
+    private function splitIndex(string $index, int $identifiersCount): array
     {
         $indexParts = explode($this->getSeparator(), $index);
-        if (count($indexParts) != $identifiersCount) {
-            throw new RuntimeException("Can't split index into parts. Maybe you should consider using different separator?");
+        if (count($indexParts) !== $identifiersCount) {
+            throw new RuntimeException(
+                "Can't split index into parts. Maybe you should consider using different separator?"
+            );
         }
 
         return $indexParts;
     }
 
-    /**
-     * @param $indexes
-     * @return array
-     */
-    private function buildMultipleSearchCriteria($indexes)
+    private function buildMultipleSearchCriteria(array $indexes): array
     {
         $multipleSearchCriteria = array();
         foreach ($indexes as $index) {
             foreach ($this->buildSearchCriteria($index) as $identifier => $indexPart) {
-                if (!array_key_exists($identifier, $multipleSearchCriteria)) {
+                if (false === array_key_exists($identifier, $multipleSearchCriteria)) {
                     $multipleSearchCriteria[$identifier] = array();
                 }
 
@@ -225,11 +186,7 @@ class DoctrineDataIndexer implements DataIndexerInterface
         return $multipleSearchCriteria;
     }
 
-    /**
-     * @param $index
-     * @return array
-     */
-    private function buildSearchCriteria($index)
+    private function buildSearchCriteria(string $index): array
     {
         $identifiers = $this->getIdentifierFieldNames();
         $indexParts = $this->splitIndex($index, count($identifiers));
@@ -238,36 +195,24 @@ class DoctrineDataIndexer implements DataIndexerInterface
     }
 
     /**
-     * @param $searchCriteria
+     * @param array $searchCriteria
      * @return object
      * @throws Exception\RuntimeException
      */
-    private function tryToFindEntity($searchCriteria)
+    private function tryToFindEntity(array $searchCriteria)
     {
         $entity = $this->getRepository()->findOneBy($searchCriteria);
 
-        if (!isset($entity)) {
-            throw new RuntimeException('Can\'t find any entity using the following search criteria: "' . implode(", ", $searchCriteria) . '"');
+        if (null === $entity) {
+            throw new RuntimeException(
+                'Can\'t find any entity using the following search criteria: "' . implode(", ", $searchCriteria) . '"'
+            );
         }
 
         return $entity;
     }
 
-    /**
-     * @param $indexes
-     * @throws Exception\InvalidArgumentException
-     */
-    private function validateIndexes($indexes)
-    {
-        if (!is_array($indexes) && (!$indexes instanceof \Traversable && !$indexes instanceof \Countable)) {
-            throw new InvalidArgumentException('Indexes are not traversable.');
-        }
-    }
-
-    /**
-     * @return \Doctrine\Common\Persistence\ObjectRepository
-     */
-    private function getRepository()
+    private function getRepository(): ObjectRepository
     {
         return $this->manager->getRepository($this->class);
     }

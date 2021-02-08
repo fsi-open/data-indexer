@@ -11,7 +11,7 @@ Add ``fsi/data-indexer`` to composer.json
     ...
 
     "require": {
-        "fsi/data-indexer" : "1.0.*@dev",
+        "fsi/data-indexer" : "^1.0@dev",
     }
 
     ...
@@ -32,4 +32,4 @@ $entity = $dataIndexer->getData($index);
 
 ```
 
-*DoctrineDataIndexer* handle single and composite keys 
+*DoctrineDataIndexer* handle single and composite keys

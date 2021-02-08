@@ -1,5 +1,5 @@
 /bin
 /vendor
 composer.lock
-composer.phar
-autoload.php
+.phpcs-cache
+.phpunit.result.cache
