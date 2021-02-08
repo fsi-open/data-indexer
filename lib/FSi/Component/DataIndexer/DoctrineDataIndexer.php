@@ -62,10 +62,7 @@ class DoctrineDataIndexer implements DataIndexerInterface
 
     public function getDataSlice(array $indexes): array
     {
-        $this->validateIndexes($indexes);
-
-        return $this->getRepository()
-            ->findBy($this->buildMultipleSearchCriteria($indexes));
+        return $this->getRepository()->findBy($this->buildMultipleSearchCriteria($indexes));
     }
 
     public function validateData($data): void
@@ -74,7 +71,7 @@ class DoctrineDataIndexer implements DataIndexerInterface
             throw new InvalidArgumentException("DoctrineDataIndexer can index only objects.");
         }
 
-        if (false === is_a($data, $this->class)) {
+        if (false === $data instanceof $this->class) {
             throw new InvalidArgumentException(sprintf(
                 'DoctrineDataIndexer expects data as instance of "%s" instead of "%s".',
                 $this->class,
@@ -166,7 +163,9 @@ class DoctrineDataIndexer implements DataIndexerInterface
     {
         $indexParts = explode($this->getSeparator(), $index);
         if (count($indexParts) !== $identifiersCount) {
-            throw new RuntimeException("Can't split index into parts. Maybe you should consider using different separator?");
+            throw new RuntimeException(
+                "Can't split index into parts. Maybe you should consider using different separator?"
+            );
         }
 
         return $indexParts;
@@ -211,13 +210,6 @@ class DoctrineDataIndexer implements DataIndexerInterface
         }
 
         return $entity;
-    }
-
-    private function validateIndexes(array $indexes): void
-    {
-        if (false === is_array($indexes)) {
-            throw new InvalidArgumentException('Indexes are not traversable.');
-        }
     }
 
     private function getRepository(): ObjectRepository

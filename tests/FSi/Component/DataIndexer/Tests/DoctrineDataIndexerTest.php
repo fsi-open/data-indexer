@@ -35,17 +35,18 @@ use FSi\Component\DataIndexer\Tests\Fixtures\Car;
 use FSi\Component\DataIndexer\Tests\Fixtures\Bike;
 use FSi\Component\DataIndexer\Tests\Fixtures\Tree;
 use FSi\Component\DataIndexer\Tests\Fixtures\Vehicle;
+use PHPUnit\Framework\MockObject\MockObject;
 use PHPUnit\Framework\TestCase;
 use Doctrine\ORM\Configuration;
 use Doctrine\ORM\Mapping\ClassMetadataFactory;
 use Doctrine\ORM\EntityRepository;
 
-class DoctrineDataIndexerTest extends TestCase
+final class DoctrineDataIndexerTest extends TestCase
 {
     /**
      * @var EntityManager
      */
-    protected $em;
+    private $em;
 
     protected function setUp(): void
     {
@@ -58,7 +59,7 @@ class DoctrineDataIndexerTest extends TestCase
         $config = $this->getMockAnnotatedConfig();
         $conn = DriverManager::getConnection($connectionParams, $config, $evm);
         $em = EntityManager::create($conn, $config, $evm);
-        $schema = array_map(static function($class) use ($em) {
+        $schema = array_map(static function ($class) use ($em) {
             return $em->getClassMetadata($class);
         }, [News::class, Post::class]);
 
@@ -72,9 +73,7 @@ class DoctrineDataIndexerTest extends TestCase
     public function testDataIndexerWithInvalidClass(): void
     {
         $managerRegistry = $this->createMock(ManagerRegistry::class);
-        $managerRegistry->expects(self::any())
-            ->method('getManagerForClass')
-            ->willReturn(null);
+        $managerRegistry->method('getManagerForClass')->willReturn(null);
 
         $class = "\\FSi\\Component\\DataIndexer\\DataIndexer";
 
@@ -249,6 +248,9 @@ class DoctrineDataIndexerTest extends TestCase
         self::assertSame(Tree::class, $dataIndexer->getClass());
     }
 
+    /**
+     * @return ManagerRegistry&MockObject
+     */
     protected function getManagerRegistry(): ManagerRegistry
     {
         $managerRegistry = $this->createMock(ManagerRegistry::class);
@@ -257,6 +259,9 @@ class DoctrineDataIndexerTest extends TestCase
         return $managerRegistry;
     }
 
+    /**
+     * @return Configuration&MockObject
+     */
     protected function getMockAnnotatedConfig(): Configuration
     {
         $config = $this->createMock(Configuration::class);

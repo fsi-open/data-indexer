@@ -15,7 +15,7 @@ interface DataIndexerInterface
 {
     /**
      * @param mixed $data
-     * @return mixed
+     * @return string
      */
     public function getIndex($data): string;
 
